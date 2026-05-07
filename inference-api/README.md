@@ -41,7 +41,6 @@ The main entry point. It initializes the FastAPI application, registers global e
   - `PredictionResponse`: Standardizes the output into an `OCEANTraits` dictionary (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism).
 
 #### 4. `services/`
-This is where the actual "business logic" and machine learning heavy-lifting occur.
 - **`inference.py`**: Contains the `BigFiveRegressor` class. This PyTorch `nn.Module` uses the `timm` library for the vision backbone and a custom classification head. It integrates with `PyTorchModelHubMixin` for easy Hugging Face weight loading.
 - **`model_manager.py`**: Contains the `ModelManager` class which acts as a singleton. It handles:
   - Downloading and caching the PyTorch models (`swinv2`, `vit`, `pvtv2`).
