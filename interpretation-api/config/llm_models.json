@@ -1,0 +1,14 @@
+[
+  {
+    "id": "google/gemma-4-31b-it:free",
+    "name": "Google Gemma 4 31B (free)"
+  },
+  {
+    "id": "google/gemma-4-26b-a4b-it:free",
+    "name": "Google Gemma 4 26B A4B (free)"
+  },
+  {
+    "id": "qwen/qwen3.5-9b",
+    "name": "Qwen 3.5 VL 9B"
+  }
+]
