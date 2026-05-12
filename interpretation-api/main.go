@@ -1,22 +1,13 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"interpretation-api/api/router"
+	"interpretation-api/core"
 )
 
 func main() {
-	r := gin.Default()
+	core.LoadConfig()
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"api_name":    "Big Five Personality Interpretation API",
-			"description": "API for generating personality interpretation based on apparent Big Five traits from image",
-			"version":     "0.1.0",
-			"status":      "online",
-		})
-	})
-
+	r := router.SetupRouter()
 	r.Run("127.0.0.1:8080")
 }
