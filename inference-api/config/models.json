@@ -1,0 +1,20 @@
+[
+    {
+        "id": "swinv2",
+        "name": "Swin Transformer V2",
+        "description": "SwinV2 Base model optimized for Big Five personality traits prediction",
+        "repo_id": "lyfesan/swinv2_base_window12to16_192to256_ms_in22k_ft_in1k_Run_D_The_Ultimate_bigfive"
+    },
+    {
+        "id": "vit",
+        "name": "Vision Transformer (ViT)",
+        "description": "ViT Base patch 16 model optimized for Big Five personality traits prediction",
+        "repo_id": "lyfesan/vit_base_patch16_224_augreg_in21k_ft_in1k_Run_D_The_Ultimate_bigfive"
+    },
+    {
+        "id": "pvtv2",
+        "name": "Pyramid Vision Transformer V2 (PVTv2)",
+        "description": "PVTv2 B5 model optimized for Big Five personality traits prediction",
+        "repo_id": "lyfesan/pvt_v2_b5_in1k_Run_D_The_Ultimate_bigfive"
+    }
+]

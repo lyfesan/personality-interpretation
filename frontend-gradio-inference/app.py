@@ -2,6 +2,7 @@ import gradio as gr
 import requests
 import base64
 from io import BytesIO
+from PIL import Image
 
 API_URL = "http://127.0.0.1:8000"
 
@@ -10,17 +11,19 @@ def get_available_models():
     try:
         response = requests.get(f"{API_URL}/models", timeout=2)
         if response.status_code == 200:
-            return response.json().get("available_models", [])
+            models_data = response.json().get("available_models", [])
+            # Return list of tuples: (Display Name, model_id) for the dropdown
+            return [(f"{m.get('name', m.get('id'))}", m.get("id")) for m in models_data]
     except Exception as e:
         print(f"Warning: Could not fetch models from API ({e}). Using defaults.")
     # Fallback default models if API is unreachable during startup
-    return ["swinv2", "vit", "pvtv2"]
+    return [("SwinV2 (swinv2)", "swinv2"), ("ViT (vit)", "vit"), ("PVTv2 (pvtv2)", "pvtv2")]
 
 def predict(image, model_type):
     if image is None:
-        return {"error": "Please upload an image."}
+        return {"error": "Please upload an image."}, None
     if not model_type:
-        return {"error": "Please select a model."}
+        return {"error": "Please select a model."}, None
     
     # Convert PIL Image to Base64 string
     buffered = BytesIO()
@@ -33,14 +36,25 @@ def predict(image, model_type):
     }
     
     try:
-        response = requests.post(f"{API_URL}/predict_base64", json=payload, timeout=30)
+        response = requests.post(f"{API_URL}/predict", json=payload, timeout=30)
         if response.status_code == 200:
             data = response.json()
-            return data.get("predictions", {})
+            predictions = data.get("predictions", {})
+            cropped_b64 = data.get("cropped_face_base64")
+            
+            cropped_img = None
+            if cropped_b64:
+                try:
+                    img_data = base64.b64decode(cropped_b64)
+                    cropped_img = Image.open(BytesIO(img_data)).convert("RGB")
+                except Exception:
+                    pass
+                    
+            return predictions, cropped_img
         else:
-            return {"error": f"HTTP {response.status_code}", "details": response.text}
+            return {"error": f"HTTP {response.status_code}", "details": response.text}, None
     except Exception as e:
-        return {"error": "Connection failed. Is the API running?", "details": str(e)}
+        return {"error": "Connection failed. Is the API running?", "details": str(e)}, None
 
 def build_app():
     models = get_available_models()
@@ -65,12 +79,13 @@ def build_app():
                 
             with gr.Column():
                 output_json = gr.JSON(label="Personality Traits (OCEAN)")
+                cropped_output = gr.Image(type="pil", label="Extracted Face (Model Input)")
         
         # Action mappings
         submit_btn.click(
             fn=predict,
             inputs=[image_input, model_dropdown],
-            outputs=output_json
+            outputs=[output_json, cropped_output]
         )
         
         def refresh_models_list():

@@ -6,6 +6,7 @@ from torchvision import transforms
 from fastapi import HTTPException
 from services.inference import BigFiveRegressor
 from schemas.predict import OCEANTraits, PredictionResponse
+from services.face_extractor import FaceExtractor
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -13,11 +14,17 @@ class ModelManager:
     def __init__(self):
         self.models = {}
         self.transforms_dict = {}
+        self.model_configs = {}
+        try:
+            self.face_extractor = FaceExtractor()
+        except Exception as e:
+            print(f"Warning: Failed to initialize FaceExtractor: {e}")
+            self.face_extractor = None
 
-    def load_hf_model_pipeline(self, model_key: str, repo_id: str, timm_name: str, use_complex_head: bool):
+    def load_hf_model_pipeline(self, model_key: str, repo_id: str, model_info: dict = None):
         """Loads model from Hugging Face and creates its specific preprocessing transform."""
         try:
-            model = BigFiveRegressor.from_pretrained(repo_id, timm_name=timm_name, use_complex_head=use_complex_head)
+            model = BigFiveRegressor.from_pretrained(repo_id)
             model.to(DEVICE)
             model.eval()
 
@@ -31,6 +38,8 @@ class ModelManager:
             
             self.models[model_key] = model
             self.transforms_dict[model_key] = transform
+            if model_info:
+                self.model_configs[model_key] = model_info
             print(f"✅ Loaded {model_key.upper()} from {repo_id}")
         except Exception as e:
             print(f"⚠️ Failed to load {model_key} from {repo_id}. Error: {e}")
@@ -48,6 +57,18 @@ class ModelManager:
             image = Image.open(io.BytesIO(image_data)).convert("RGB")
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid Base64 image payload.")
+
+        # Face Extraction
+        cropped_base64 = None
+        if self.face_extractor:
+            image = self.face_extractor.extract_main_face(image)
+            if image is None:
+                raise HTTPException(status_code=400, detail="No face detected in the image.")
+            
+            # Convert back to base64 for response
+            buffered = io.BytesIO()
+            image.save(buffered, format="JPEG")
+            cropped_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
         # Transform and Infer
         transform = self.transforms_dict[model_type_lower]
@@ -75,7 +96,8 @@ class ModelManager:
         # 3. Return the strictly formatted Pydantic object
         return PredictionResponse(
             model_used=model_type_lower, 
-            predictions=standardized_ocean
+            predictions=standardized_ocean,
+            cropped_face_base64=cropped_base64
         )
 
 # Global instance to be used across the application
