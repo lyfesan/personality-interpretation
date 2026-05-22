@@ -1,0 +1,6 @@
+{
+  "api_name": "Big Five Personality Inference API",
+  "description": "API for predicting Big Five personality traits (OCEAN) from facial images using deep learning vision models",
+  "version": "1.2.0",
+  "status": "online"
+}
