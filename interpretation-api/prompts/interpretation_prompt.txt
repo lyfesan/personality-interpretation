@@ -1,0 +1,8 @@
+Based on the following Big Five personality traits predicted from an image of the user:
+- Openness: %.2f
+- Conscientiousness: %.2f
+- Extraversion: %.2f
+- Agreeableness: %.2f
+- Neuroticism: %.2f
+
+Please provide a detailed personality interpretation. Analyze the visual features from the image that might correlate with these traits. Provide insights in a friendly, constructive manner.
