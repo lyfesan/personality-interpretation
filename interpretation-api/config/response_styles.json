@@ -1,0 +1,30 @@
+[
+  {
+    "id": "comprehensive_en_to_id",
+    "name": "Comprehensive Analysis (EN to ID)",
+    "description": "A detailed psychological breakdown using an English prompt, translated to Indonesian.",
+    "template_file": "prompts/comprehensive_en_to_id.txt",
+    "language": "id"
+  },
+  {
+    "id": "short_en_to_id",
+    "name": "Short Summary (EN to ID)",
+    "description": "A brief 2-sentence summary using an English prompt, translated to Indonesian.",
+    "template_file": "prompts/short_en_to_id.txt",
+    "language": "id"
+  },
+  {
+    "id": "comprehensive_id",
+    "name": "Analisis Komprehensif (ID Native)",
+    "description": "A detailed psychological breakdown using a native Indonesian prompt.",
+    "template_file": "prompts/comprehensive_id.txt",
+    "language": "id"
+  },
+  {
+    "id": "short_id",
+    "name": "Ringkasan Singkat (ID Native)",
+    "description": "A brief 2-sentence summary using a native Indonesian prompt.",
+    "template_file": "prompts/short_id.txt",
+    "language": "id"
+  }
+]

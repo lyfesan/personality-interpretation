@@ -1,6 +1,6 @@
 {
   "api_name": "Big Five Personality Interpretation API",
   "description": "API for generating personality interpretation based on apparent Big Five traits from image",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "online"
 }

@@ -73,3 +73,42 @@ The main entry point. It initializes the FastAPI application, registers global e
 | `POST` | `/predict` | Submits an image, extracts the face, and returns OCEAN traits alongside the cropped face image |
 
 *To see the full interactive API schema, run the server and navigate to `http://127.0.0.1:8000/docs`.*
+
+## Setup and Execution
+
+### Prerequisites
+- Python 3.10+
+- (Optional but recommended) CUDA-capable GPU for faster inference.
+
+### Installation
+
+1. Open a terminal and navigate to the API directory:
+   ```bash
+   cd inference-api
+   ```
+
+2. Create and activate a Python virtual environment:
+   ```bash
+   python -m venv venv
+   
+   # Windows PowerShell
+   .\venv\Scripts\Activate.ps1
+   # Linux/macOS
+   source venv/bin/activate
+   ```
+
+3. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Ensure your environment variables are configured. You can use the existing `.env` file or copy `.env.example` to `.env` to set your `HF_TOKEN`.
+
+### Running the API
+
+Start the API server using Python:
+```bash
+python main.py
+```
+
+The API will start at `http://127.0.0.1:8000`. During the first startup, it will securely load the model weights from Hugging Face into memory.

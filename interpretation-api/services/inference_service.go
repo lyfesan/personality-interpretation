@@ -32,7 +32,7 @@ func GetInferenceModels() ([]byte, error) {
 }
 
 func PredictBigFive(modelType string, imageBase64 string) (*schemas.InferenceResponse, error) {
-	url := fmt.Sprintf("%s/predict_base64", core.AppConfig.InferenceApiUrl)
+	url := fmt.Sprintf("%s/predict", core.AppConfig.InferenceApiUrl)
 
 	reqBody := schemas.InferenceRequest{
 		ModelType:   modelType,
