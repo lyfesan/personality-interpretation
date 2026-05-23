@@ -35,10 +35,45 @@ func IsLLMModelAllowed(modelID string) bool {
 	return false
 }
 
-func GenerateInterpretation(llmModel string, imageBase64 string, traits schemas.OCEANTraits) (string, error) {
-	promptTemplateBytes, err := os.ReadFile("prompts/interpretation_prompt.txt")
+func GetResponseStyles() ([]schemas.ResponseStyle, error) {
+	data, err := os.ReadFile("config/response_styles.json")
 	if err != nil {
-		return "", fmt.Errorf("failed to read prompt template: %w", err)
+		return nil, err
+	}
+
+	var styles []schemas.ResponseStyle
+	if err := json.Unmarshal(data, &styles); err != nil {
+		return nil, err
+	}
+	return styles, nil
+}
+
+func GenerateInterpretation(llmModel string, imageBase64 string, traits schemas.OCEANTraits, styleID string) (string, error) {
+	if styleID == "" {
+		styleID = "comprehensive_id"
+	}
+
+	styles, err := GetResponseStyles()
+	if err != nil {
+		return "", fmt.Errorf("failed to load response styles: %w", err)
+	}
+
+	templateFile := ""
+	for _, s := range styles {
+		if s.ID == styleID {
+			templateFile = s.TemplateFile
+			break
+		}
+	}
+
+	// Fallback to comprehensive_id if not found
+	if templateFile == "" {
+		templateFile = "prompts/comprehensive_id.txt"
+	}
+
+	promptTemplateBytes, err := os.ReadFile(templateFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to read prompt template %s: %w", templateFile, err)
 	}
 
 	prompt := fmt.Sprintf(string(promptTemplateBytes), traits.Openness, traits.Conscientiousness, traits.Extraversion, traits.Agreeableness, traits.Neuroticism)
@@ -57,7 +92,7 @@ func GenerateInterpretation(llmModel string, imageBase64 string, traits schemas.
 
 	req := openrouter.ChatCompletionRequest{
 		Model:     llmModel,
-		MaxTokens: 4096,
+		MaxTokens: 1000,
 		Messages: []openrouter.ChatCompletionMessage{
 			openrouter.UserMessageWithImage(prompt, imageUrl),
 		},

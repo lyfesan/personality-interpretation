@@ -24,12 +24,25 @@ func GetInferenceModels(c *gin.Context) {
 	c.Data(http.StatusOK, "application/json", result)
 }
 
+func GetResponseStyles(c *gin.Context) {
+	result, err := services.GetResponseStyles()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 func Interpret(c *gin.Context) {
 	var req schemas.InterpretRequest
 
 	if strings.HasPrefix(c.ContentType(), "multipart/form-data") {
 		req.InferenceModel = c.PostForm("inference_model")
 		req.LLMModel = c.PostForm("llm_model")
+		req.StyleID = c.PostForm("style_id")
 
 		file, err := c.FormFile("image")
 		if err != nil {
@@ -84,7 +97,7 @@ func Interpret(c *gin.Context) {
 	}
 
 	// 2. Use traits and image to get interpretation from LLM
-	interpretation, err := services.GenerateInterpretation(req.LLMModel, req.Image, inferenceResp.Predictions)
+	interpretation, err := services.GenerateInterpretation(req.LLMModel, req.Image, inferenceResp.Predictions, req.StyleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to generate interpretation from LLM: " + err.Error(),

@@ -12,6 +12,7 @@ func SetupRouter() *gin.Engine {
 	r.GET("/", endpoints.SystemRoot)
 	r.GET("/inference-models", endpoints.GetInferenceModels)
 	r.GET("/llm-models", endpoints.GetLLMModels)
+	r.GET("/response-styles", endpoints.GetResponseStyles)
 	r.POST("/interpret", endpoints.Interpret)
 
 	r.StaticFile("/favicon.ico", "./favicon.ico")
