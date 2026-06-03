@@ -1,0 +1,2 @@
+# Keep this directory in Git so it is created on clone.
+# Place your Cloudflare Origin Certificate (origin.pem) and Private Key (origin.key) here.

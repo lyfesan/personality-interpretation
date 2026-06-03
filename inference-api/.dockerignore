@@ -1,0 +1,22 @@
+# Ignore python virtual environments and dependencies
+pytorch-cuda/
+venv/
+.venv/
+env/
+
+# Ignore python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore local environment file (production secrets should be injected via env variables)
+.env
+
+# Ignore git folder
+.git/
+.gitignore
+
+# Ignore docker files
+Dockerfile
+.dockerignore

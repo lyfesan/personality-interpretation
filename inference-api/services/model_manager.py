@@ -9,7 +9,7 @@ from schemas.predict import OCEANTraits, PredictionResponse
 from services.face_extractor import FaceExtractor
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
+# DEVICE = "cpu"
 class ModelManager:
     def __init__(self):
         self.models = {}
@@ -78,7 +78,7 @@ class ModelManager:
         with torch.no_grad():
             with torch.amp.autocast('cuda' if DEVICE == 'cuda' else 'cpu'):
                 output = model(input_tensor)
-                probabilities = output.squeeze().cpu().numpy()
+                probabilities = output.squeeze().cpu().to(torch.float32).numpy()
 
         # 1. Map the raw array to the order the model was trained on
         raw_traits = ['Extraversion', 'Neuroticism', 'Agreeableness', 'Conscientiousness', 'Openness']

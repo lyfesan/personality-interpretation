@@ -3,11 +3,17 @@ package main
 import (
 	"interpretation-api/api/router"
 	"interpretation-api/core"
+	"os"
 )
 
 func main() {
 	core.LoadConfig()
 
 	r := router.SetupRouter()
-	r.Run("127.0.0.1:8080")
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	r.Run(":" + port)
 }

@@ -14,18 +14,19 @@ coverage.*
 *.coverprofile
 profile.cov
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
 
-# Go workspace file
+# Go workspace files
 go.work
 go.work.sum
 
 # env file
 .env
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# Temporary directory (used by live reloading tools like air)
+tmp/
 
-tmp
+# Nginx SSL certificates (never commit private keys or certificates)
+nginx/certs/*
+!nginx/certs/.gitkeep

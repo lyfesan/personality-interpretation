@@ -1,0 +1,14 @@
+# DeepEval local cache and database
+.deepeval/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Local environment variables
+.env
+
+# Evaluation test output files
+results/
+eval_out.txt
+eval_out2.txt

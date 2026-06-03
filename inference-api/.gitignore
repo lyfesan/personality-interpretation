@@ -1,5 +1,14 @@
-pytorch-cuda
-venv
+# Model weights or environment/dependency directories
+pytorch-cuda/
+
+# Python cache files
 __pycache__/
-*.pyc
+*.py[cod]
+
+# Local environment variables
 .env
+
+# Python virtual environments
+venv/
+.venv/
+env/

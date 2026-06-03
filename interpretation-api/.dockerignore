@@ -1,0 +1,19 @@
+# Ignore local environment config
+.env
+
+# Ignore temporary directory used by live reloading tools (like air)
+tmp/
+
+# Ignore local builds or test binaries
+*.exe
+*.test
+*.out
+main
+
+# Ignore git folder
+.git/
+.gitignore
+
+# Ignore docker files
+Dockerfile
+.dockerignore

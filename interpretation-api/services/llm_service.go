@@ -92,7 +92,7 @@ func GenerateInterpretation(llmModel string, imageBase64 string, traits schemas.
 
 	req := openrouter.ChatCompletionRequest{
 		Model:     llmModel,
-		MaxTokens: 1000,
+		MaxTokens: 2500,
 		Messages: []openrouter.ChatCompletionMessage{
 			openrouter.UserMessageWithImage(prompt, imageUrl),
 		},
