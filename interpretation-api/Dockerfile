@@ -13,8 +13,9 @@ RUN go mod download
 # Copy the rest of the source code
 COPY . .
 
-# Build the Go application binary with optimizations (disabled CGO for portability)
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-w -s" -o main .
+# Build the Go application binary with optimizations (restricted resources to prevent OOM on 1GB RAM VM)
+RUN GOMAXPROCS=1 GOMEMLIMIT=500MiB CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-w -s" -o main .
+
 
 # --- Run Stage ---
 FROM alpine:3.19

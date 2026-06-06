@@ -8,6 +8,7 @@ This directory contains the Go-based API Gateway built with the Gin framework. I
 - **LLM Integration**: Communicates with OpenRouter to pass the extracted traits and the original image into Vision-Language Models (e.g., Gemma, Qwen) for deep personality analysis.
 - **Dynamic Prompting System**: Supports multiple prompt styles (e.g., Comprehensive, Short Summary) natively integrated into the API. The prompts enforce strict Indonesian language output for downstream evaluation.
 - **Configuration Driven**: LLM models and response styles are easily configurable via JSON files without changing the Go code.
+- **Automatic Keep-Alive Scheduler**: Runs a background check every 24 hours to keep the Hugging Face Inference Space/Endpoint active. It automatically bypasses local development target URLs (e.g. `localhost` or `127.0.0.1`) to prevent redundant checks during local testing.
 
 ## Endpoints Summary
 

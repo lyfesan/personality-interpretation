@@ -7,8 +7,9 @@ import os
 from io import BytesIO
 from PIL import Image
 
-INFERENCE_API_URL = "http://127.0.0.1:8000"
-INTERPRETATION_API_URL = "http://127.0.0.1:8080"
+INFERENCE_API_URL = os.getenv("INFERENCE_API_URL", "http://127.0.0.1:8000")
+INTERPRETATION_API_URL = os.getenv("INTERPRETATION_API_URL", "http://127.0.0.1:8080")
+
 
 def get_available_models():
     """Fetch available models from the FastAPI server."""
@@ -275,4 +276,7 @@ def build_app():
 
 if __name__ == "__main__":
     app = build_app()
-    app.launch(server_name="127.0.0.1", server_port=7860, share=False, theme=gr.themes.Soft())
+    server_name = os.getenv("GRADIO_SERVER_NAME", "0.0.0.0")
+    server_port = int(os.getenv("GRADIO_SERVER_PORT", 7860))
+    app.launch(server_name=server_name, server_port=server_port, share=False, theme=gr.themes.Soft())
+
