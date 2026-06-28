@@ -58,25 +58,39 @@ func GenerateInterpretation(llmModel string, imageBase64 string, traits schemas.
 		return "", fmt.Errorf("failed to load response styles: %w", err)
 	}
 
-	templateFile := ""
+	var matchedStyle schemas.ResponseStyle
+	found := false
 	for _, s := range styles {
 		if s.ID == styleID {
-			templateFile = s.TemplateFile
+			matchedStyle = s
+			found = true
 			break
 		}
 	}
 
 	// Fallback to comprehensive_id if not found
-	if templateFile == "" {
-		templateFile = "prompts/comprehensive_id.txt"
+	if !found {
+		matchedStyle = schemas.ResponseStyle{
+			ID:           "comprehensive_id",
+			TemplateFile: "prompts/comprehensive_id.txt",
+		}
 	}
 
-	promptTemplateBytes, err := os.ReadFile(templateFile)
+	promptTemplateBytes, err := os.ReadFile(matchedStyle.TemplateFile)
 	if err != nil {
-		return "", fmt.Errorf("failed to read prompt template %s: %w", templateFile, err)
+		return "", fmt.Errorf("failed to read prompt template %s: %w", matchedStyle.TemplateFile, err)
 	}
 
 	prompt := fmt.Sprintf(string(promptTemplateBytes), traits.Openness, traits.Conscientiousness, traits.Extraversion, traits.Agreeableness, traits.Neuroticism)
+
+	var systemPrompt string
+	if matchedStyle.SystemTemplateFile != "" {
+		systemBytes, err := os.ReadFile(matchedStyle.SystemTemplateFile)
+		if err != nil {
+			return "", fmt.Errorf("failed to read system template %s: %w", matchedStyle.SystemTemplateFile, err)
+		}
+		systemPrompt = string(systemBytes)
+	}
 
 	// Ensure the base64 string has the correct prefix for OpenRouter
 	imageUrl := imageBase64
@@ -90,12 +104,16 @@ func GenerateInterpretation(llmModel string, imageBase64 string, traits schemas.
 		openrouter.WithHTTPReferer(core.AppConfig.AppUrl),
 	)
 
+	var messages []openrouter.ChatCompletionMessage
+	if systemPrompt != "" {
+		messages = append(messages, openrouter.SystemMessage(systemPrompt))
+	}
+	messages = append(messages, openrouter.UserMessageWithImage(prompt, imageUrl))
+
 	req := openrouter.ChatCompletionRequest{
 		Model:     llmModel,
 		MaxTokens: 2500,
-		Messages: []openrouter.ChatCompletionMessage{
-			openrouter.UserMessageWithImage(prompt, imageUrl),
-		},
+		Messages:  messages,
 	}
 
 	resp, err := client.CreateChatCompletion(context.Background(), req)

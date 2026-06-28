@@ -17,11 +17,9 @@ def get_available_models():
         response = requests.get(f"{INFERENCE_API_URL}/models", timeout=2)
         if response.status_code == 200:
             models_data = response.json().get("available_models", [])
-            # Return list of tuples: (Display Name, model_id) for the dropdown
             return [(f"{m.get('name', m.get('id'))}", m.get("id")) for m in models_data]
     except Exception as e:
         print(f"Warning: Could not fetch models from API ({e}). Using defaults.")
-    # Fallback default models if API is unreachable during startup
     return [("SwinV2 (swinv2)", "swinv2"), ("ViT (vit)", "vit"), ("PVTv2 (pvtv2)", "pvtv2")]
 
 def predict(image, model_type):
@@ -30,7 +28,7 @@ def predict(image, model_type):
     if not model_type:
         return {"error": "Please select a model."}, None
     
-    # Convert PIL Image to Base64 string
+    # Convert PIL Image to Base64
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
@@ -60,8 +58,6 @@ def predict(image, model_type):
             return {"error": f"HTTP {response.status_code}", "details": response.text}, None
     except Exception as e:
         return {"error": "Connection failed. Is the API running?", "details": str(e)}, None
-
-# --- Interpretation API helpers ---
 
 def get_inference_models():
     """Fetch inference models from the interpretation API."""
@@ -139,7 +135,7 @@ def interpret(image, inference_model, llm_model, style_id):
 def export_result(image, inf_model, llm_id, style_id, traits, interpretation):
     """Exports the results to a JSON file and returns the temp file path."""
     if not traits and not interpretation:
-        return None # Nothing to export
+        return None
         
     img_b64 = None
     if image is not None:
@@ -167,13 +163,35 @@ def export_result(image, inf_model, llm_id, style_id, traits, interpretation):
     return path
 
 
-# --- Build combined app ---
+def load_all_dropdowns():
+    """Fetch all dynamic models, LLMs, and styles to populate dropdowns on page load/refresh."""
+    models = get_available_models()
+    inf_models_raw = get_inference_models()
+    
+    id_to_name = {m_id: m_name for m_name, m_id in models}
+    
+    inf_models = []
+    for m in inf_models_raw:
+        if isinstance(m, dict):
+            inf_models.append((m.get("name", m.get("id")), m.get("id")))
+        else:
+            inf_models.append((id_to_name.get(m, m), m))
+
+    llm_models = get_llm_models()
+    response_styles = get_response_styles()
+    
+    return (
+        gr.update(choices=models, value=models[0][1] if models else None),
+        gr.update(choices=inf_models, value=inf_models[0][1] if inf_models else None),
+        gr.update(choices=llm_models, value=llm_models[0][1] if llm_models else None),
+        gr.update(choices=response_styles, value=response_styles[0][1] if response_styles else None)
+    )
+
 
 def build_app():
     models = get_available_models()
     inf_models_raw = get_inference_models()
     
-    # Map inference model IDs to display names (Name, ID)
     id_to_name = {m_id: m_name for m_name, m_id in models}
     
     inf_models = []
@@ -190,24 +208,20 @@ def build_app():
         gr.Markdown("# Personality Analysis")
 
         with gr.Tabs():
-            # ===== Tab 1: Raw Inference (existing) =====
             with gr.TabItem("🔬 Inference"):
-                gr.Markdown("Test the raw inference API. Upload an image, choose a vision model, and get OCEAN trait scores.")
                 with gr.Row():
                     with gr.Column():
                         image_input = gr.Image(type="pil", label="Face Image")
-                        with gr.Row():
-                            model_dropdown = gr.Dropdown(
-                                choices=models, 
-                                value=models[0][1] if models else None, 
-                                label="Inference Model"
-                            )
-                            refresh_btn = gr.Button("🔄 Refresh Models", size="sm")
+                        model_dropdown = gr.Dropdown(
+                            choices=models, 
+                            value=models[0][1] if models else None, 
+                            label="Inference Model"
+                        )
 
                         submit_btn = gr.Button("Predict Personality", variant="primary")
                         
                     with gr.Column():
-                        output_json = gr.JSON(label="Personality Traits (OCEAN)")
+                        output_json = gr.JSON(label="Personality Traits (Big Five)")
                         cropped_output = gr.Image(type="pil", label="Extracted Face (Model Input)")
         
                 # Action mappings
@@ -217,19 +231,7 @@ def build_app():
                     outputs=[output_json, cropped_output]
                 )
                 
-                def refresh_models_list():
-                    new_models = get_available_models()
-                    return gr.update(choices=new_models, value=new_models[0][1] if new_models else None)
-                    
-                refresh_btn.click(
-                    fn=refresh_models_list,
-                    inputs=[],
-                    outputs=[model_dropdown]
-                )
-
-            # ===== Tab 2: Full Interpretation =====
             with gr.TabItem("✨ Interpretation"):
-                gr.Markdown("Upload an image and get a full personality analysis powered by vision models + LLM interpretation.")
                 with gr.Row():
                     with gr.Column():
                         interp_image = gr.Image(type="pil", label="Face Image")
@@ -251,7 +253,7 @@ def build_app():
                         )
                         interp_btn = gr.Button("Interpret Personality", variant="primary")
                     with gr.Column():
-                        interp_traits = gr.JSON(label="Predicted Traits (OCEAN)")
+                        interp_traits = gr.JSON(label="Predicted Traits (Big Five)")
                         interp_text = gr.Markdown(label="LLM Interpretation", value="*Interpretation will appear here...*")
                         
                         export_btn = gr.DownloadButton("Export Result as JSON", variant="secondary")
@@ -270,6 +272,12 @@ def build_app():
                     inputs=[interp_image, interp_inf_dropdown, interp_llm_dropdown, style_dropdown, interp_traits, interp_text],
                     outputs=[export_btn]
                 )
+
+        demo.load(
+            fn=load_all_dropdowns,
+            inputs=[],
+            outputs=[model_dropdown, interp_inf_dropdown, interp_llm_dropdown, style_dropdown]
+        )
 
     return demo
 

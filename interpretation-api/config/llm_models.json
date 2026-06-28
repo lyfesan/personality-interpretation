@@ -1,15 +1,15 @@
 [
   {
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "name": "Qwen3 VL 32B Instruct"
+  },
+  {
     "id": "google/gemma-4-31b-it",
     "name": "Google Gemma 4 31B"
   },
   {
     "id": "google/gemma-4-26b-a4b-it",
     "name": "Google Gemma 4 26B A4B"
-  },
-  {
-    "id": "qwen/qwen3-vl-32b-instruct",
-    "name": "Qwen3 VL 32B Instruct"
   },
   {
     "id": "qwen/qwen3-vl-235b-a22b-instruct",

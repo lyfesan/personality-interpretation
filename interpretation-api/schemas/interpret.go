@@ -1,11 +1,12 @@
 package schemas
 
 type ResponseStyle struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Description  string `json:"description"`
-	TemplateFile string `json:"template_file"`
-	Language     string `json:"language"`
+	ID                 string `json:"id"`
+	Name               string `json:"name"`
+	Description        string `json:"description"`
+	TemplateFile       string `json:"template_file"`
+	SystemTemplateFile string `json:"system_template_file,omitempty"`
+	Language           string `json:"language"`
 }
 
 type InterpretRequest struct {

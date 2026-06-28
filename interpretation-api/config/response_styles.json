@@ -3,28 +3,15 @@
     "id": "roleplay_comprehensive_id",
     "name": "Analisis Komprehensif (Roleplay Prompting)",
     "description": "A detailed psychological analysis using roleplay prompting.",
-    "template_file": "prompts/roleplay_comprehensive_id.txt",
-    "language": "id"
-  },
-  {
-    "id": "roleplay_short_id",
-    "name": "Analisis Singkat (Roleplay Prompting)",
-    "description": "A brief analysis using roleplay prompting.",
-    "template_file": "prompts/roleplay_short_id.txt",
+    "template_file": "prompts/roleplay_comprehensive_user_id.txt",
+    "system_template_file": "prompts/roleplay_system_id.txt",
     "language": "id"
   },
   {
     "id": "comprehensive_id",
-    "name": "Analisis Komprehensif",
+    "name": "Analisis Komprehensif (Standard)",
     "description": "A detailed psychological analysis.",
     "template_file": "prompts/comprehensive_id.txt",
-    "language": "id"
-  },
-  {
-    "id": "short_id",
-    "name": "Analisis Singkat",
-    "description": "A brief 2 paragraph pyschological analysis.",
-    "template_file": "prompts/short_id.txt",
     "language": "id"
   }
 ]

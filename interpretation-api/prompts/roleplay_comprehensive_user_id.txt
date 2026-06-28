@@ -1,0 +1,10 @@
+Berdasarkan prediksi kepribadian Big Five berikut yang diekstraksi dari wajah pengguna:
+- Openness (Keterbukaan): %.2f
+- Conscientiousness (Kehati-hatian): %.2f
+- Extraversion (Ekstraversi): %.2f
+- Agreeableness (Keramahan): %.2f
+- Neuroticism (Neurotisisme): %.2f
+
+Berikan asesmen kepribadian yang mendetail dan komprehensif. Analisis fitur visual dari gambar yang mungkin berkorelasi dengan sifat-sifat psikologis ini. Fokus hanya kepada asesmen kepribadian. Gunakan bahasa indonesia yang baik dan benar.
+
+CATATAN : berikan respon maksimal 1500 token

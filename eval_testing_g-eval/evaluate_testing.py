@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
 evaluation_dir = os.path.join(parent_dir, "evaluation")
-testing_dir = os.path.join(parent_dir, "testing")
-json_dir = os.path.join(testing_dir, "json")
+json_dir = os.path.join(current_dir, "json")
 
 sys.path.append(evaluation_dir)
 
@@ -45,10 +44,10 @@ def run_evaluation():
 
     # 1. Load configuration and metrics
     config = load_metrics_config()
-    # Explicitly ensure GPT-5 is used as requested
     evaluator_model = config.get("evaluator_model", "openai/gpt-5")
     print(f"[*] Evaluator Model: {evaluator_model}")
-    print(f"[*] Metrics to run: {[m['name'] for m in config.get('metrics', [])]}")
+    current_metric_names = [m["name"] for m in config.get("metrics", [])]
+    print(f"[*] Metrics to run: {current_metric_names}")
 
     # 2. Get list of generated JSON combinations from testing/json
     json_files = glob(os.path.join(json_dir, "*.json"))
@@ -59,6 +58,23 @@ def run_evaluation():
 
     print(f"[*] Found {len(json_files)} cached combinations to evaluate.")
     print("-" * 60)
+
+    results_dir = os.path.join(current_dir, "results")
+    os.makedirs(results_dir, exist_ok=True)
+    raw_results_path = os.path.join(results_dir, "eval_testing_raw.json")
+
+    # Load existing checkpoint/results to resume
+    cached_results = {}
+    if os.path.exists(raw_results_path):
+        try:
+            with open(raw_results_path, "r", encoding="utf-8") as f:
+                checkpoint_data = json.load(f)
+                cached_runs = checkpoint_data.get("results", [])
+                for run in cached_runs:
+                    cached_results[run["filename"]] = run
+            print(f"[*] Loaded G-Eval checkpoint containing {len(cached_results)} previously evaluated runs.")
+        except Exception as e:
+            print(f"[!] Warning: Failed to load G-Eval checkpoint: {e}")
 
     results = []
 
@@ -76,83 +92,101 @@ def run_evaluation():
         response_style = params.get("response_style", "unknown")
 
         # Determine prompt style classification
-        # 'roleplay' style files contain 'roleplay' in response_style or filename
         if "roleplay" in response_style.lower() or "roleplay" in filename.lower():
             prompt_style = "roleplay"
         else:
             prompt_style = "standard"
 
-        res_block = data.get("results", {})
-        traits = res_block.get("predictions", {})
-        interpretation = res_block.get("interpretation", "")
-        image_b64 = data.get("image_base64", "")
+        # Check if we can load this from checkpoint
+        use_checkpoint = False
+        if filename in cached_results:
+            cached_case = cached_results[filename]
+            cached_metrics = {m["name"]: m for m in cached_case.get("metrics", [])}
+            
+            # Verify all metrics exist and none failed (payment/client errors)
+            is_valid = True
+            for name in current_metric_names:
+                if name not in cached_metrics:
+                    is_valid = False
+                    break
+                reason = cached_metrics[name].get("reason", "")
+                if "failed" in reason.lower() or "client error" in reason.lower() or "payment" in reason.lower():
+                    is_valid = False
+                    break
+            
+            if is_valid:
+                use_checkpoint = True
+                case_scores = cached_case
+                print("    [-] Loaded from G-Eval checkpoint.")
 
-        # Prepare DeepEval test case
-        input_data = {
-            "traits": traits,
-            "image_base64": image_b64
-        }
-        test_case = LLMTestCase(
-            input=json.dumps(input_data),
-            actual_output=interpretation
-        )
+        if not use_checkpoint:
+            res_block = data.get("results", {})
+            traits = res_block.get("predictions", {})
+            interpretation = res_block.get("interpretation", "")
+            image_b64 = data.get("image_base64", "")
 
-        case_scores = {
-            "filename": filename,
-            "llm_model": llm_model,
-            "response_style": response_style,
-            "prompt_style": prompt_style,
-            "inference_model": inference_model,
-            "metrics": []
-        }
-
-        # Initialize and evaluate each metric dynamically
-        for m in config.get("metrics", []):
-            metric = DynamicMultimodalMetric(
-                name=m["name"],
-                criteria=m["criteria"],
-                threshold=m.get("threshold", 0.5),
-                model=evaluator_model,
-                use_image=m.get("use_image", False)
+            # Prepare DeepEval test case
+            input_data = {
+                "traits": traits,
+                "image_base64": image_b64
+            }
+            test_case = LLMTestCase(
+                input=json.dumps(input_data),
+                actual_output=interpretation
             )
 
-            print(f"    - Running Metric: {m['name']}...", end="", flush=True)
-            try:
-                score = metric.measure(test_case)
-                reason = metric.reason
-                passed = metric.is_successful()
-                print(f" Completed. Score: {score:.2f} | Passed: {passed}")
-            except Exception as e:
-                score = 0.0
-                reason = f"Execution failed: {str(e)}"
-                passed = False
-                print(f" Failed! Error: {e}")
+            case_scores = {
+                "filename": filename,
+                "llm_model": llm_model,
+                "response_style": response_style,
+                "prompt_style": prompt_style,
+                "inference_model": inference_model,
+                "metrics": []
+            }
 
-            case_scores["metrics"].append({
-                "name": m["name"],
-                "score": score,
-                "threshold": m.get("threshold", 0.5),
-                "passed": passed,
-                "reason": reason
-            })
+            # Initialize and evaluate each metric dynamically
+            for m in config.get("metrics", []):
+                metric = DynamicMultimodalMetric(
+                    name=m["name"],
+                    criteria=m["criteria"],
+                    threshold=m.get("threshold", 0.5),
+                    model=evaluator_model,
+                    use_image=m.get("use_image", False)
+                )
+
+                print(f"    - Running Metric: {m['name']}...", end="", flush=True)
+                try:
+                    score = metric.measure(test_case)
+                    reason = metric.reason
+                    passed = metric.is_successful()
+                    print(f" Completed. Score: {score:.2f} | Passed: {passed}")
+                except Exception as e:
+                    score = 0.0
+                    reason = f"Execution failed: {str(e)}"
+                    passed = False
+                    print(f" Failed! Error: {e}")
+
+                case_scores["metrics"].append({
+                    "name": m["name"],
+                    "score": score,
+                    "threshold": m.get("threshold", 0.5),
+                    "passed": passed,
+                    "reason": reason
+                })
 
         results.append(case_scores)
+
+        # Save checkpoint to disk immediately after evaluating the combination
+        output_data = {
+            "timestamp": datetime.now().isoformat(),
+            "evaluator_model": evaluator_model,
+            "total_evaluated": len(results),
+            "results": results
+        }
+        with open(raw_results_path, "w", encoding="utf-8") as f:
+            json.dump(output_data, f, indent=2, ensure_ascii=False)
+            
         print("-" * 60)
-
-    # 4. Save raw results to JSON file
-    results_dir = os.path.join(current_dir, "results")
-    os.makedirs(results_dir, exist_ok=True)
-    raw_results_path = os.path.join(results_dir, "eval_testing_raw.json")
-
-    output_data = {
-        "timestamp": datetime.now().isoformat(),
-        "evaluator_model": evaluator_model,
-        "total_evaluated": len(results),
-        "results": results
-    }
-
-    with open(raw_results_path, "w", encoding="utf-8") as f:
-        json.dump(output_data, f, indent=2, ensure_ascii=False)
 
     print(f"[+] Evaluation finished! Raw results successfully saved to: {raw_results_path}")
     print("=" * 60)
