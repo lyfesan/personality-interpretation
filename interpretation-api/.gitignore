@@ -27,6 +27,13 @@ go.work.sum
 # Temporary directory (used by live reloading tools like air)
 tmp/
 
+<<<<<<< HEAD
 # Nginx SSL certificates (never commit private keys or certificates)
 nginx/certs/*
 !nginx/certs/.gitkeep
+=======
+tmp
+
+.key
+.pem
+>>>>>>> b0aee9c (feat: add gitignore files)
