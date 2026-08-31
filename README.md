@@ -2,6 +2,8 @@
 
 This project is an implementation of my [undergraduate thesis](https://github.com/lyfesan/buku-tugas-akhir) for interpreting the Big Five (OCEAN) personality traits from face images. By leveraging advanced Vision Models and Large Language Models (LLMs), it not only extracts raw personality scores from images but also provides personalized, human-readable psychological interpretations.
 
+![Personality Interpretation Frontend](assets/demo-app.png)
+
 ## System Architecture
 
 The project is split into three main components, each housed in its own directory:
